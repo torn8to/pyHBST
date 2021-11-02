@@ -8,7 +8,8 @@ namespace srrg_hbst {
   //! @param MatchableType_ matchable type (class) for the match
   //! @param real_precision_ matching distance precision
   template <typename BinaryMatchableType_, typename real_type_ = double>
-  struct BinaryMatch {
+  class BinaryMatch {
+    public:
     using Matchable  = BinaryMatchableType_;
     using ObjectType = typename Matchable::ObjectType;
     using real_type  = real_type_;
@@ -58,5 +59,6 @@ namespace srrg_hbst {
     std::vector<ObjectType>
       object_references; // ds multiple references are possible for identical matching distance
     real_type distance;
+
   };
 } // namespace srrg_hbst

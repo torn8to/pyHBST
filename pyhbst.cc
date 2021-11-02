@@ -14,6 +14,7 @@ using namespace srrg_hbst;
 
 using Descriptor = std::vector<bool>;
 
+
 typedef std::array<float, 2> KeyPt;
 
 typedef BinaryTree128<KeyPt> Tree128;
@@ -25,6 +26,7 @@ typedef BinaryMatchable<KeyPt, 128> Matchable128;
 typedef BinaryMatchable<KeyPt, 256> Matchable256;
 typedef BinaryMatchable<KeyPt, 512> Matchable512;
 
+typedef BinaryMatch<Matchable256, double> BinaryMatch256;
 
 PYBIND11_MODULE(pyhbst, m) {
     m.doc() = "Python bindings for HBST";
@@ -36,9 +38,20 @@ PYBIND11_MODULE(pyhbst, m) {
         .value("SplitRandomUniform", SplittingStrategy::SplitRandomUniform)
         .export_values();
 
+    py::class_<BinaryMatch256>(m, "BinaryMatch256")
+        .def(py::init<>())
+        .def(py::init<const BinaryMatch256&>())
+        .def_readonly("distance", &BinaryMatch256::distance)
+        .def_readonly("object_query", &BinaryMatch256::object_query)
+        .def_readonly("object_references", &BinaryMatch256::object_references)
+        .def_readonly("matchable_query", &BinaryMatch256::matchable_query)
+        .def_readonly("matchable_references", &BinaryMatch256::matchable_references);
+
     py::class_<Matchable256>(m, "BinaryMatchable256")
         .def(py::init<KeyPt, const std::vector<bool>&, const uint64_t&>())
-        .def("distance", &Matchable256::distance);
+        .def("distance", &Matchable256::distance)
+        .def("getDescriptor", &Matchable256::getDescriptorAsBoolVector)
+        .def("getImageIdentifier", &Matchable256::getImageIdentifier);
 
     py::class_<Tree256>(m, "BinaryTree256")
         .def(py::init<>())
@@ -47,7 +60,8 @@ PYBIND11_MODULE(pyhbst, m) {
         .def("match", &Tree256::matchWrapper)
         //.def("train", &Tree256::train)
         .def("matchAndAdd", &Tree256::matchAndAddWrapper)
-        // .def("getNumberOfMatches", &Tree256::getNumberOfMatches)
+        //.def("getNumberOfMatches", &Tree256::getNumberOfMatches)
+        //.def("getScorePerImage", &Tree256::getScorePerImage)
         // .def("getMatchingRatio", &Tree256::getMatchingRatio)
         // .def("getNumberOfMatchesLazy", &Tree256::getNumberOfMatchesLazy)
         // .def("getMatchingRatioLazy", &Tree256::getMatchingRatioLazy)

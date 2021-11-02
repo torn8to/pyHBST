@@ -196,18 +196,30 @@ namespace srrg_hbst {
 #endif
 
 //#ifdef PYTHON_BUILD
-    static inline Descriptor getDescriptorFromBoolVector(const std::vector<bool>& descriptor) {
+    static inline Descriptor getDescriptorFromBoolVector(const std::vector<bool>& bool_descriptor) {
       // ds buffer
       Descriptor binary_descriptor(descriptor_size_bits_);
 
+      for (size_t i = 0; i < descriptor_size_bits_; ++i) {
+        binary_descriptor[i] = bool_descriptor[i];
+      }
+
       // PRBABLY NOT THE BEST WAY TO DO THAT. FIND A BETTER WAY FOR BITSET ANDPYBIND11
       // check length of descriptor 
-      std::stringstream strStream;
-      std::copy(descriptor.begin(), descriptor.end(), std::ostream_iterator<bool>(strStream));
-      std::bitset<descriptor_size_bits_> bitsetVar(strStream.str());
-      binary_descriptor = bitsetVar;
+      // std::stringstream strStream;
+      // std::copy(bool_descriptor.begin(), bool_descriptor.end(), std::ostream_iterator<bool>(strStream));
+      // std::bitset<descriptor_size_bits_> bitsetVar(strStream.str());
+      // binary_descriptor = bitsetVar;
 
       return binary_descriptor;
+    }
+
+    DescriptorBool getDescriptorAsBoolVector() {
+      DescriptorBool bool_descriptor(descriptor_size_bits_);
+      for (size_t i = 0; i < descriptor_size_bits_; ++i) {
+        bool_descriptor[i] = (bool)descriptor[i];
+      }
+      return bool_descriptor;
     }
 //#endif
 
@@ -222,6 +234,8 @@ namespace srrg_hbst {
 
     //! @brief quick access to the number of contained objects/image_identifiers (default: 1)
     uint64_t number_of_objects;
+    
+    uint64_t getImageIdentifier() { return _image_identifier; }
 
     // ds fast access (for a matchable with only single values, internal only)
   protected:

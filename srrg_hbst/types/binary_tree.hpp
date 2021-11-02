@@ -425,10 +425,11 @@ namespace srrg_hbst {
     }
 
     // ds direct matching function on this tree
-    void matchWrapper(const MatchableVector& matchables_query_,
+    MatchVector matchWrapper(const MatchableVector& matchables_query_,
                const uint32_t& maximum_distance_ = 25) const {
       MatchVector matches;
       match(matchables_query_, matches, maximum_distance_);
+      return matches;
     }
 
     // ds direct matching function on this tree
@@ -844,23 +845,15 @@ namespace srrg_hbst {
       ++_header.number_of_training_entries;
     }
 
-    void matchAndAddWrapper(const MatchableVector& matchables_,
-                     const uint32_t maximum_distance_matching_ = 25,
-                     const SplittingStrategy& train_mode_      = SplittingStrategy::SplitEven) {
+    MatchVectorMap matchAndAddWrapper(
+      const MatchableVector& matchables,
+      const uint32_t maximum_distance_matching = 25,
+      const SplittingStrategy& train_mode      = SplittingStrategy::SplitEven) {
 
       MatchVectorMap matches_per_reference_image;
-      std::cout<<"HERE\n";
-      matchAndAdd(matchables_, matches_per_reference_image, maximum_distance_matching_, train_mode_);
-      std::cout<<"HERE1\n";
+      matchAndAdd(matchables, matches_per_reference_image, maximum_distance_matching, train_mode);
+      return matches_per_reference_image;
 
-      for (const MatchVectorMapElement& match_vector : matches_per_reference_image){
-        const uint64_t& index_image_reference = match_vector.first;
-        const MatchVector& matches      = match_vector.second;
-        const uint64_t number_of_matches      = matches.size();
-            // ds compute matching ratio/score for this reference image
-        std::cout<<"matches to REFERENCE "<<index_image_reference<<" num matches: "<<number_of_matches<<"\n";
-      }
-      
     //   for (const Tree::MatchVectorMapElement& match_vector : matches_per_reference_image) {
     //   const uint64_t& index_image_reference = match_vector.first;
     //   const Tree::MatchVector& matches      = match_vector.second;
