@@ -24,6 +24,7 @@ namespace srrg_hbst {
     //! @brief descriptor type (extended by augmented bits, no effect if zero)
     using Descriptor = std::bitset<descriptor_size_bits_>;
     using DescriptorBool = std::vector<bool>;
+    using DescriptorUint8 = std::vector<uint8_t>;
     using ObjectType = ObjectType_;
     using ObjectMap  = std::map<uint64_t, ObjectType>;
 
@@ -66,7 +67,7 @@ namespace srrg_hbst {
       assert(number_of_objects == objects.size());
     }
 
-        //! @brief constructor with an object pointer for association
+    //! @brief constructor with an object pointer for association
     //! @param[in] object_ associated object (note that HBST takes ownership of this object and
     //! invalidates the variable)
     //! @param[in] descriptor_ HBST descriptor
@@ -76,6 +77,23 @@ namespace srrg_hbst {
                     const DescriptorBool& descriptor_,
                     const uint64_t& image_identifier_ = 0) :
       descriptor(getDescriptorFromBoolVector(descriptor_)),
+      number_of_objects(1),
+      _image_identifier(image_identifier_),
+      _object(std::move(object_)) {
+      objects.insert(std::make_pair(_image_identifier, _object));
+      assert(number_of_objects == objects.size());
+    }
+
+    //! @brief constructor with an object pointer for association
+    //! @param[in] object_ associated object (note that HBST takes ownership of this object and
+    //! invalidates the variable)
+    //! @param[in] descriptor_ HBST descriptor
+    //! @param[in] image_identifier_ reference to image on which the descriptors have been computed
+    //! (optional)
+    BinaryMatchable(ObjectType object_,
+                    const DescriptorUint8& descriptor_,
+                    const uint64_t& image_identifier_ = 0) :
+      descriptor(getDescriptorFromUint8Vector(descriptor_)),
       number_of_objects(1),
       _image_identifier(image_identifier_),
       _object(std::move(object_)) {
@@ -199,7 +217,6 @@ namespace srrg_hbst {
     static inline Descriptor getDescriptorFromBoolVector(const std::vector<bool>& bool_descriptor) {
       // ds buffer
       Descriptor binary_descriptor(descriptor_size_bits_);
-
       for (size_t i = 0; i < descriptor_size_bits_; ++i) {
         binary_descriptor[i] = bool_descriptor[i];
       }
@@ -211,6 +228,36 @@ namespace srrg_hbst {
       // std::bitset<descriptor_size_bits_> bitsetVar(strStream.str());
       // binary_descriptor = bitsetVar;
 
+      return binary_descriptor;
+    }
+
+    static inline Descriptor getDescriptorFromUint8Vector(const std::vector<uint8_t>& uint8_descriptor) {
+      // ds buffer
+      Descriptor binary_descriptor(descriptor_size_bits_);
+      // ds set original descriptor string after augmentation
+      for (uint64_t byte_index = 0; byte_index < raw_descriptor_size_bytes; ++byte_index) {
+        const uint32_t bit_index_start = byte_index * 8;
+
+        // ds grab a byte and convert it to a bitset so we can access the single bits
+        const std::bitset<8> descriptor_byte(uint8_descriptor[byte_index]);
+
+        // ds set bitstring
+        for (uint8_t v = 0; v < 8; ++v) {
+          binary_descriptor[bit_index_start + v] = descriptor_byte[v];
+        }
+      }
+
+      // ds check if we have extra bits (less than 1 byte i.e. <= 7 bits)
+      if (descriptor_size_bits_overflow > 0) {
+        // ds get last byte (not fully set)
+        const std::bitset<8> descriptor_byte(uint8_descriptor[raw_descriptor_size_bytes]);
+
+        // ds only set the remaining bits
+        for (uint32_t v = 0; v < descriptor_size_bits_overflow; ++v) {
+          binary_descriptor[descriptor_size_bits_in_bytes + v] =
+            descriptor_byte[8 - descriptor_size_bits_overflow + v];
+        }
+      }
       return binary_descriptor;
     }
 

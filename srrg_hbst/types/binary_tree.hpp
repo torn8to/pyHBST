@@ -713,6 +713,7 @@ namespace srrg_hbst {
         return;
       }
       const uint64_t identifier_image_query = matchables_.front()->_image_identifier;
+      _added_identifiers_train.insert(identifier_image_query);
 
       // ds check if we have to build an initial tree first
       if (!_root) {
@@ -730,7 +731,7 @@ namespace srrg_hbst {
       matches_.clear();
       for (const uint64_t identifier_tree : _added_identifiers_train) {
         matches_.insert(std::make_pair(identifier_tree, MatchVector()));
-
+        std::cout<<"identifier_tree: "<<identifier_tree<<"\n";
         // ds preallocate space to speed up match addition
         matches_.at(identifier_tree).reserve(matchables_.size());
       }
@@ -747,7 +748,7 @@ namespace srrg_hbst {
       // ds currently we allow merging maximally once per reference matchable
       std::set<const Matchable*> merged_reference_matchables;
 #endif
-
+      std::cout<<"match each matchable: \n";
       // ds for each descriptor
       uint64_t index_trainable = 0;
       for (Matchable* matchable_query : matchables_) {
@@ -779,9 +780,13 @@ namespace srrg_hbst {
 #endif
 
             // ds register all matches in the output structure
+            std::cout<<"best_matches:"<<best_matches.size() <<"\n";
             for (const std::pair<uint64_t, Match> best_match : best_matches) {
+              std::cout<<"best_match.first:"<<best_match.first <<"\n";
+              std::cout<<"best_match.second DISTANCE: "<<best_match.second.distance<<"\n";
               matches_.at(best_match.first).push_back(best_match.second);
             }
+            std::cout<<"Finished:\n";
 
 #ifdef SRRG_MERGE_DESCRIPTORS
             // ds if we can merge the query matchable into the reference
@@ -826,7 +831,7 @@ namespace srrg_hbst {
       _number_of_merged_matchables_last_training = _merged_matchables.size();
       _merged_matchables.clear();
 #endif
-
+      std::cout<<"Hier:\n";
       // ds integrate new matchables: merge, add and spawn leaves if requested
       MatchableVector new_matchables;
       new_matchables.reserve(_trainables.size());
@@ -841,7 +846,7 @@ namespace srrg_hbst {
       // ds insert new matchables and identifier
       _matchables.insert(_matchables.end(), new_matchables.begin(), new_matchables.end());
       _header.number_of_matchables_compressed += new_matchables.size();
-      _added_identifiers_train.insert(identifier_image_query);
+      
       ++_header.number_of_training_entries;
     }
 
@@ -1426,6 +1431,9 @@ namespace srrg_hbst {
           const uint64_t& identifer_tree_reference = matchable_reference->_image_identifier;
           assert(matchable_reference->objects.find(identifer_tree_reference) !=
                  matchable_reference->objects.end());
+          if (matchable_reference->objects.size() == 0) {
+            continue;
+          }
           ObjectType object_reference =
             std::move(matchable_reference->objects.at(identifer_tree_reference));
 
@@ -1460,6 +1468,7 @@ namespace srrg_hbst {
               assert(best_match_so_far.object_references.size() > 1);
             }
           } catch (const std::out_of_range& /*exception*/) {
+            std::cout<<"Exception!\n";
             // ds add a new match
             best_matches_.insert(std::make_pair(
               identifer_tree_reference,

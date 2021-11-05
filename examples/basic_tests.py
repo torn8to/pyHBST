@@ -2,8 +2,8 @@ import cv2
 import pyhbst
 
 desc_size = 256
-tree = pyhbst.BinarySearchTree256()
-split_strat = pyhbst.SplitEven
+tree = pyhbst.BinarySearchTree256(0)
+split_strat = pyhbst.SplitUneven
 
 desc1 = [True]*desc_size
 kp = [100,100]

@@ -12,7 +12,7 @@ namespace py = pybind11;
 
 using namespace srrg_hbst;
 
-using Descriptor = std::vector<bool>;
+using DescriptorBool = std::vector<bool>;
 
 
 typedef std::array<float, 2> KeyPt;
@@ -48,6 +48,7 @@ PYBIND11_MODULE(pyhbst, m) {
 
     py::class_<Matchable128>(m, "Matchable128")
         .def(py::init<KeyPt, const std::vector<bool>&, const uint64_t&>())
+        .def(py::init<KeyPt, const std::vector<uint8_t>&, const uint64_t&>())
         .def("distance", &Matchable128::distance)
         .def("getDescriptor", &Matchable128::getDescriptorAsBoolVector)
         .def("getImageIdentifier", &Matchable128::getImageIdentifier);
@@ -79,6 +80,7 @@ PYBIND11_MODULE(pyhbst, m) {
 
     py::class_<Matchable256>(m, "Matchable256")
         .def(py::init<KeyPt, const std::vector<bool>&, const uint64_t&>())
+        .def(py::init<KeyPt, const std::vector<uint8_t>&, const uint64_t&>())
         .def("distance", &Matchable256::distance)
         .def("getDescriptor", &Matchable256::getDescriptorAsBoolVector)
         .def("getImageIdentifier", &Matchable256::getImageIdentifier);
