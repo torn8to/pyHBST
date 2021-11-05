@@ -358,6 +358,8 @@ namespace srrg_hbst {
   std::mt19937 BinaryNode<BinaryMatchableType_, real_type_>::random_number_generator;
 
   template <typename ObjectType_>
+  using BinaryNode64 = BinaryNode<BinaryMatchable64<ObjectType_>>;
+  template <typename ObjectType_>
   using BinaryNode128 = BinaryNode<BinaryMatchable128<ObjectType_>>;
   template <typename ObjectType_>
   using BinaryNode256 = BinaryNode<BinaryMatchable256<ObjectType_>>;

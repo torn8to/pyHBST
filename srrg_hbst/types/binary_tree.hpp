@@ -425,14 +425,6 @@ namespace srrg_hbst {
     }
 
     // ds direct matching function on this tree
-    MatchVector matchWrapper(const MatchableVector& matchables_query_,
-               const uint32_t& maximum_distance_ = 25) const {
-      MatchVector matches;
-      match(matchables_query_, matches, maximum_distance_);
-      return matches;
-    }
-
-    // ds direct matching function on this tree
     void match(const MatchableVector& matchables_query_,
                MatchVector& matches_,
                const uint32_t& maximum_distance_ = 25) const {
@@ -479,6 +471,24 @@ namespace srrg_hbst {
           }
         }
       }
+    }
+
+
+    // ds direct matching function on this tree
+    template <class T>
+    MatchVector matchWrapper(
+      const std::vector<ObjectType>& keypoints,
+      const std::vector<std::vector<T>>& descriptors,
+      const uint64_t image_identifier,
+      const uint32_t& maximum_distance_ = 25) {
+        
+      MatchableVector matchables;
+      getMatchablesFromPythonInput<T>(keypoints, descriptors, image_identifier, matchables);  
+      
+      MatchVector matches;
+      match(matchables, matches, maximum_distance_);
+
+      return matches;
     }
 
     // ds return matches directly
@@ -539,6 +549,17 @@ namespace srrg_hbst {
           }
         }
       }
+    }
+    
+    template <class T>
+    void addWrapper(
+      const std::vector<ObjectType>& keypoints,
+      const std::vector<std::vector<T>>& descriptors,
+      const uint64_t image_identifier,
+      const SplittingStrategy& train_mode_ = SplittingStrategy::DoNothing) {
+      MatchableVector matchables;
+      getMatchablesFromPythonInput<T>(keypoints, descriptors, image_identifier, matchables);  
+      add(matchables, train_mode_);
     }
 
     //! @brief incrementally grows the tree
@@ -705,7 +726,7 @@ namespace srrg_hbst {
     //! training images added to the tree
     //! @param[in] maximum_distance_matching_ the maximum distance allowed for a positive match
     //! response
-    void matchAndAdd(const MatchableVector& matchables_,
+    void matchAndAdd(const MatchableVector matchables_,
                      MatchVectorMap& matches_,
                      const uint32_t maximum_distance_matching_ = 25,
                      const SplittingStrategy& train_mode_      = SplittingStrategy::SplitEven) {
@@ -731,7 +752,6 @@ namespace srrg_hbst {
       matches_.clear();
       for (const uint64_t identifier_tree : _added_identifiers_train) {
         matches_.insert(std::make_pair(identifier_tree, MatchVector()));
-        std::cout<<"identifier_tree: "<<identifier_tree<<"\n";
         // ds preallocate space to speed up match addition
         matches_.at(identifier_tree).reserve(matchables_.size());
       }
@@ -780,13 +800,9 @@ namespace srrg_hbst {
 #endif
 
             // ds register all matches in the output structure
-            std::cout<<"best_matches:"<<best_matches.size() <<"\n";
             for (const std::pair<uint64_t, Match> best_match : best_matches) {
-              std::cout<<"best_match.first:"<<best_match.first <<"\n";
-              std::cout<<"best_match.second DISTANCE: "<<best_match.second.distance<<"\n";
               matches_.at(best_match.first).push_back(best_match.second);
             }
-            std::cout<<"Finished:\n";
 
 #ifdef SRRG_MERGE_DESCRIPTORS
             // ds if we can merge the query matchable into the reference
@@ -831,7 +847,6 @@ namespace srrg_hbst {
       _number_of_merged_matchables_last_training = _merged_matchables.size();
       _merged_matchables.clear();
 #endif
-      std::cout<<"Hier:\n";
       // ds integrate new matchables: merge, add and spawn leaves if requested
       MatchableVector new_matchables;
       new_matchables.reserve(_trainables.size());
@@ -850,62 +865,21 @@ namespace srrg_hbst {
       ++_header.number_of_training_entries;
     }
 
+    template <class T>
     MatchVectorMap matchAndAddWrapper(
-      const MatchableVector& matchables,
+      const std::vector<ObjectType>& keypoints,
+      const std::vector<std::vector<T>>& descriptors,
+      const uint64_t image_identifier,
       const uint32_t maximum_distance_matching = 25,
       const SplittingStrategy& train_mode      = SplittingStrategy::SplitEven) {
 
+      MatchableVector matchables;
+      getMatchablesFromPythonInput(keypoints, descriptors, image_identifier, matchables);  
       MatchVectorMap matches_per_reference_image;
       matchAndAdd(matchables, matches_per_reference_image, maximum_distance_matching, train_mode);
       return matches_per_reference_image;
-
-    //   for (const Tree::MatchVectorMapElement& match_vector : matches_per_reference_image) {
-    //   const uint64_t& index_image_reference = match_vector.first;
-    //   const Tree::MatchVector& matches      = match_vector.second;
-    //   const uint64_t number_of_matches      = matches.size();
-
-    //   // ds compute matching ratio/score for this reference image
-    //   const double score =
-    //     static_cast<double>(number_of_matches) / matchables_per_image[index_image_reference].size();
-    //   std::printf("matches for QUERY [%02u] to REFERENCE [%02lu]: %4lu (matching ratio: %5.3f)\n",
-    //               index_image_query,
-    //               index_image_reference,
-    //               number_of_matches,
-    //               score);
-
-    //   // ds show the matching in an image pair
-    //   cv::Mat image_display;
-    //   cv::vconcat(image_query, images[index_image_reference], image_display);
-    //   cv::cvtColor(image_display, image_display, CV_GRAY2RGB);
-
-    //   // ds shift to lower image
-    //   const cv::Point2f shift(0, image_query.rows);
-
-    //   // ds draw correspondences - for each match
-    //   for (const Tree::Match& match : matches) {
-    //     // ds we evalute only 1-to-1 matches
-    //     if (match.object_references.size() == 1) {
-    //       // ds draw correspondence line between images
-    //       cv::line(image_display,
-    //                match.object_query.pt,
-    //                match.object_references[0].pt + shift,
-    //                cv::Scalar(0, 255, 0));
-
-    //       // ds draw query point in upper image
-    //       cv::circle(image_display, match.object_query.pt, 2, cv::Scalar(255, 0, 0));
-
-    //       // ds draw reference point in lower image
-    //       cv::circle(
-    //         image_display, match.object_references[0].pt + shift, 2, cv::Scalar(0, 0, 255));
-    //     }
-    //   }
-    //   cv::imshow("matching (top: QUERY, bot: REFERENCE)", image_display);
-    //   cv::waitKey(0);
-    // }
-
-      //return matches;
-
     }
+
 #ifdef SRRG_HBST_HAS_OPENCV
 
     // ds creates a matchable vector (pointers) from opencv descriptors - only available if OpenCV
@@ -1418,7 +1392,7 @@ namespace srrg_hbst {
                           const MatchableVector& matchables_reference_,
                           const uint32_t& maximum_distance_matching_,
                           std::map<uint64_t, Match>& best_matches_) const {
-      ObjectType object_query =
+      ObjectType object_query = 
         std::move(matchable_query_->objects.at(matchable_query_->_image_identifier));
 
       // ds check current descriptors in this node
@@ -1449,9 +1423,9 @@ namespace srrg_hbst {
 
               // ds replace the best with this match on the spot - we don't have to update the query
               // information
-              best_match_so_far.matchable_references =
+              best_match_so_far.matchable_references = 
                 std::move(std::vector<const Matchable*>(1, matchable_reference));
-              best_match_so_far.object_references =
+              best_match_so_far.object_references = 
                 std::move(std::vector<ObjectType>(1, object_reference));
               best_match_so_far.distance = distance;
               assert(best_match_so_far.matchable_references.size() == 1);
@@ -1468,7 +1442,6 @@ namespace srrg_hbst {
               assert(best_match_so_far.object_references.size() > 1);
             }
           } catch (const std::out_of_range& /*exception*/) {
-            std::cout<<"Exception!\n";
             // ds add a new match
             best_matches_.insert(std::make_pair(
               identifer_tree_reference,
@@ -1518,6 +1491,19 @@ namespace srrg_hbst {
       }
     }
 
+    template <class T>
+    void getMatchablesFromPythonInput(
+      const std::vector<ObjectType>& keypoints,
+      const std::vector<std::vector<T>>& descriptors,
+      const uint64_t image_identifier,
+      MatchableVector& matchables) {
+
+      matchables.resize(keypoints.size());
+      for (size_t i=0; i < keypoints.size(); ++i) {
+        matchables[i] = new Matchable(keypoints[i], descriptors[i], image_identifier);
+      }
+    }
+
     // ds public attributes
   public:
 #ifdef SRRG_MERGE_DESCRIPTORS
@@ -1560,6 +1546,8 @@ namespace srrg_hbst {
   uint32_t BinaryTree<BinaryNodeType_>::maximum_distance_for_merge = 0;
 #endif
 
+  template <typename ObjectType_>
+  using BinaryTree64 = BinaryTree<BinaryNode64<ObjectType_>>;
   template <typename ObjectType_>
   using BinaryTree128 = BinaryTree<BinaryNode128<ObjectType_>>;
   template <typename ObjectType_>

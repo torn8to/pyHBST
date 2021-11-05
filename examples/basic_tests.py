@@ -6,10 +6,10 @@ tree = pyhbst.BinarySearchTree256(0)
 split_strat = pyhbst.SplitUneven
 
 desc1 = [True]*desc_size
-kp = [100,100]
+kp = [100.,100.]
 img_id = 0
-matchable1 = pyhbst.Matchable256(kp, desc1, img_id)
-a=tree.add([matchable1], split_strat)
+#matchable1 = pyhbst.Matchable256(kp, desc1, img_id)
+a=tree.add([kp], [desc1], img_id, split_strat)
 
 desc2 = [True]*desc_size
 for i in range(5):

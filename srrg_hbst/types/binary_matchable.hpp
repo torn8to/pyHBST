@@ -311,6 +311,8 @@ namespace srrg_hbst {
     BinaryMatchable<ObjectType_, descriptor_size_bits_>::descriptor_size_bits_overflow;
 
   template <typename ObjectType_>
+  using BinaryMatchable64 = BinaryMatchable<ObjectType_, 64>;
+  template <typename ObjectType_>
   using BinaryMatchable128 = BinaryMatchable<ObjectType_, 128>;
   template <typename ObjectType_>
   using BinaryMatchable256 = BinaryMatchable<ObjectType_, 256>;

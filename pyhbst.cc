@@ -17,13 +17,16 @@ using DescriptorBool = std::vector<bool>;
 
 typedef std::array<float, 2> KeyPt;
 
+typedef BinaryTree64<KeyPt> Tree64;
 typedef BinaryTree128<KeyPt> Tree128;
 typedef BinaryTree256<KeyPt> Tree256;
 
 // a binary matchable is a keypoint and a descriptor
+typedef BinaryMatchable<KeyPt, 64> Matchable64;
 typedef BinaryMatchable<KeyPt, 128> Matchable128;
 typedef BinaryMatchable<KeyPt, 256> Matchable256;
 
+typedef BinaryMatch<Matchable64, double> Match64;
 typedef BinaryMatch<Matchable128, double> Match128;
 typedef BinaryMatch<Matchable256, double> Match256;
 
@@ -36,6 +39,41 @@ PYBIND11_MODULE(pyhbst, m) {
         .value("SplitUneven", SplittingStrategy::SplitUneven)
         .value("SplitRandomUniform", SplittingStrategy::SplitRandomUniform)
         .export_values();
+    
+        // 64 bit
+    py::class_<Match64>(m, "Match64")
+        .def(py::init<>())
+        .def(py::init<const Match64&>())
+        .def_readonly("distance", &Match64::distance)
+        .def_readonly("object_query", &Match64::object_query)
+        .def_readonly("object_references", &Match64::object_references)
+        .def_readonly("matchable_query", &Match64::matchable_query)
+        .def_readonly("matchable_references", &Match64::matchable_references);
+
+    py::class_<Matchable64>(m, "Matchable64")
+        .def(py::init<KeyPt, const std::vector<bool>&, const uint64_t&>())
+        .def(py::init<KeyPt, const std::vector<uint8_t>&, const uint64_t&>())
+        .def("distance", &Matchable64::distance)
+        .def("getDescriptor", &Matchable64::getDescriptorAsBoolVector)
+        .def("getImageIdentifier", &Matchable64::getImageIdentifier);
+
+    py::class_<Tree64>(m, "BinarySearchTree64")
+        .def(py::init<>())
+        .def(py::init<const uint64_t&>())
+        .def("add", &Tree64::addWrapper<bool>)
+        .def("add", &Tree64::addWrapper<uint8_t>)
+        .def("match", &Tree64::matchWrapper<bool>)
+        .def("match", &Tree64::matchWrapper<uint8_t>)
+        .def("matchAndAdd", &Tree64::matchAndAddWrapper<bool>)
+        .def("matchAndAdd", &Tree64::matchAndAddWrapper<uint8_t>)
+        .def("trainedIdentifiers", &Tree64::trainedIdentifiers)
+        .def("numberOfMatchablesUncompressed", &Tree64::numberOfMatchablesUncompressed)
+        .def("numberOfMatchablesCompressed", &Tree64::numberOfMatchablesCompressed)
+        .def("numberOfMergedMatchablesLastTraining", &Tree64::numberOfMergedMatchablesLastTraining)
+        .def("clear", &Tree64::clear)
+        .def("write", &Tree64::write)
+        .def("read", &Tree64::read);
+
     // 128 bit
     py::class_<Match128>(m, "Match128")
         .def(py::init<>())
@@ -56,17 +94,19 @@ PYBIND11_MODULE(pyhbst, m) {
     py::class_<Tree128>(m, "BinarySearchTree128")
         .def(py::init<>())
         .def(py::init<const uint64_t&>())
-        .def("add", &Tree128::add)
-        .def("match", &Tree128::matchWrapper)
-        .def("matchAndAdd", &Tree128::matchAndAddWrapper)
+        .def("add", &Tree128::addWrapper<bool>)
+        .def("add", &Tree128::addWrapper<uint8_t>)
+        .def("match", &Tree128::matchWrapper<bool>)
+        .def("match", &Tree128::matchWrapper<uint8_t>)
+        .def("matchAndAdd", &Tree128::matchAndAddWrapper<bool>)
+        .def("matchAndAdd", &Tree128::matchAndAddWrapper<uint8_t>)
         .def("trainedIdentifiers", &Tree128::trainedIdentifiers)
         .def("numberOfMatchablesUncompressed", &Tree128::numberOfMatchablesUncompressed)
         .def("numberOfMatchablesCompressed", &Tree128::numberOfMatchablesCompressed)
         .def("numberOfMergedMatchablesLastTraining", &Tree128::numberOfMergedMatchablesLastTraining)
         .def("clear", &Tree128::clear)
         .def("write", &Tree128::write)
-        .def("read", &Tree128::read)
-        ;
+        .def("read", &Tree128::read);
 
     // 256 bit
     py::class_<Match256>(m, "Match256")
@@ -88,16 +128,18 @@ PYBIND11_MODULE(pyhbst, m) {
     py::class_<Tree256>(m, "BinarySearchTree256")
         .def(py::init<>())
         .def(py::init<const uint64_t&>())
-        .def("add", &Tree256::add)
-        .def("match", &Tree256::matchWrapper)
-        .def("matchAndAdd", &Tree256::matchAndAddWrapper)
+        .def("add", &Tree256::addWrapper<bool>)
+        .def("add", &Tree256::addWrapper<uint8_t>)
+        .def("match", &Tree256::matchWrapper<bool>)
+        .def("match", &Tree256::matchWrapper<uint8_t>)
+        .def("matchAndAdd", &Tree256::matchAndAddWrapper<bool>)
+        .def("matchAndAdd", &Tree256::matchAndAddWrapper<uint8_t>)
         .def("trainedIdentifiers", &Tree256::trainedIdentifiers)
         .def("numberOfMatchablesUncompressed", &Tree256::numberOfMatchablesUncompressed)
         .def("numberOfMatchablesCompressed", &Tree256::numberOfMatchablesCompressed)
         .def("numberOfMergedMatchablesLastTraining", &Tree256::numberOfMergedMatchablesLastTraining)
         .def("clear", &Tree256::clear)
         .def("write", &Tree256::write)
-        .def("read", &Tree256::read)
-        ;
+        .def("read", &Tree256::read);
 
 }
