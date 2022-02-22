@@ -1,4 +1,4 @@
-name: pyTheiaSfM build and publish
+name: pyHBST build and publish
 
 on:
   push:
