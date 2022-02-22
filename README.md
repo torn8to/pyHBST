@@ -15,9 +15,36 @@ The method is described in this paper:
     }
 
 ## Usage
+### Examples
 You can find two examples how to use the library in [examples](examples).
  * The first example [opencv_incremental_matching_orb.py](examples/opencv_incremental_matching_orb.py), depicts how the library can be used to incrementally add and match images to a binary search tree with 256bit sized descriptors. Instead of exhaustively matching images to each other, we find the best matching images with corresponding 2D points and descriptors from the search tree and only need to touch the descriptors from each image once. 
  * The seconds example [opencv_incremental_matching_akaze_binarization.py](examples/opencv_incremental_matching_akaze_binarization.py) depicts a smaller tree with only 64-bit and how to use binarized AKAZE float descriptors to achieve the same thing.
+
+### General usage
+``` Python
+# construct a tree supporting some descriptor size (64,128,256,512)
+tree256 = pyhbst.BinarySearchTree256() # descriptor size 256-bit
+# get some keypoints and descriptors for that image
+kpts, desc = orb.detectAndCompute(image,None)
+kpts_list = [list(kpt.pt) for kpt in kpts]
+# incrementally match and add this image
+hamming_dist = 10
+matches = tree.matchAndAdd(kpts_list, desc.tolist(), img_id, hamming_dist, pyhbst.SplitEven)
+
+if matches:
+    # iterate all matches in tree
+    for m in tree_matches:
+        match_obj = tree_matches[m]
+        # if we have found a match with another image
+        if match_obj:
+            nr_matches = len(match_obj)
+            for i in range(nr_matches):
+                query_kp = match_obj[i].object_query
+                refer_kp = match_obj[i].object_references[0]
+
+# important! clean up
+tree256.clear(True)
+``` 
 
 
 ## Installation
