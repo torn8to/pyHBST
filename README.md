@@ -29,7 +29,7 @@ kpts, desc = orb.detectAndCompute(image,None)
 kpts_list = [list(kpt.pt) for kpt in kpts]
 # incrementally match and add this image
 hamming_dist = 10
-matches = tree.matchAndAdd(kpts_list, desc.tolist(), img_id, hamming_dist, pyhbst.SplitEven)
+matches = tree256.matchAndAdd(kpts_list, desc.tolist(), img_id, hamming_dist, pyhbst.SplitEven)
 
 if matches:
     # iterate all matches in tree
