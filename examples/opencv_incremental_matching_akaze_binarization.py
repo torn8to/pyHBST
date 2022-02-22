@@ -6,9 +6,9 @@ import numpy as np
 import time
 from utils import get_matchables_from_ocv
 
-detector = cv2.ORB_create(2000)
-max_hamming_dist = 35
-tree64 = pyhbst.BinarySearchTree256()
+detector = cv2.AKAZE_create(cv2.AKAZE_DESCRIPTOR_KAZE, 0, 3, 0.001, 4, 4)
+max_hamming_dist = 5
+tree64 = pyhbst.BinarySearchTree64()
 
 images = glob.glob(os.path.join(os.path.dirname(os.path.realpath(__file__)),'data/*.ppm'))
 
@@ -22,18 +22,17 @@ for idx, img_path in enumerate(images):
     img_dict[idx] = I
     kpts, desc = detector.detectAndCompute(I,None)
     print("Extracted {} keypoints from {}".format(desc.shape[1], idx))
+    # binarize akaze descriptors to bool
+    desc_bool = desc > 0
     tree_matches = get_matchables_from_ocv(
-            tree64, kpts, desc, idx, max_hamming_dist, pyhbst.SplitEven)
+            tree64, kpts, desc_bool, idx, max_hamming_dist, pyhbst.SplitEven)
 
     # show matches
     if tree_matches:
         for m in tree_matches:
             match_obj = tree_matches[m]
             print("Putative matches between {} and {}: {}".format(idx, m, len(match_obj)))
-            
             if match_obj:
-                if len(match_obj) < 10:
-                    continue
                 conc_img = np.concatenate([I, img_dict[m]],1)
                 nr_matches = len(match_obj)
                 src_pts, dst_pts = [], []
@@ -52,7 +51,7 @@ for idx, img_path in enumerate(images):
 
                 src_pts = np.float32(src_pts).reshape(-1,1,2)
                 dst_pts = np.float32(dst_pts).reshape(-1,1,2)
-                M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 2.0)
+                M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 3.0)
                 matchesMask = mask.ravel().tolist()
                 print("Homography matches between {} and {}: {}".format(idx, m, np.sum(matchesMask)))
 

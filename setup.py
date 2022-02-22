@@ -3,6 +3,7 @@ import os
 import re
 import subprocess
 import sys
+import argparse
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
@@ -14,6 +15,10 @@ PLAT_TO_CMAKE = {
     "win-arm32": "ARM",
     "win-arm64": "ARM64",
 }
+
+argparser = argparse.ArgumentParser(add_help=False)
+argparser.add_argument('--build_arch_native', help='If architecture specific optimizations should be enabled', default=False)
+args, unknown = argparser.parse_known_args()
 
 
 # A CMakeExtension needs a sourcedir instead of a file list.
@@ -35,7 +40,8 @@ class CMakeBuild(build_ext):
 
         debug = int(os.environ.get("DEBUG", 0)) if self.debug is None else self.debug
         cfg = "Debug" if debug else "Release"
-
+        
+        build_march_native = int(os.environ.get("BUILD_MARCH_NATIVE", 0))
         # CMake lets you override the generator - we need to check this.
         # Can be set with Conda-Build, for example.
         cmake_generator = os.environ.get("CMAKE_GENERATOR", "")
@@ -47,6 +53,7 @@ class CMakeBuild(build_ext):
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}".format(extdir),
             "-DPYTHON_EXECUTABLE={}".format(sys.executable),
             "-DCMAKE_BUILD_TYPE={}".format(cfg),  # not used on MSVC, but no harm
+            "-DBUILD_WITH_MARCH_NATIVE={}".format("ON" if build_march_native else "OFF")
         ]
         build_args = []
         # Adding CMake arguments set as environment variable
@@ -124,10 +131,10 @@ class CMakeBuild(build_ext):
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
     name="pyHBST",
-    version="0.0.1",
+    version="0.1.0",
     author="Steffen Urban",
     author_email="urbste@googlemail.com",
-    description="pyHBST",
+    description="pyHBST - Python bindings for fast incremental feature matching using Hamming Binary Search Trees",
     long_description="",
     ext_modules=[CMakeExtension("pyhbst")],
     cmdclass={"build_ext": CMakeBuild},

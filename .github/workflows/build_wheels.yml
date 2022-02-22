@@ -1,0 +1,37 @@
+name: pyTheiaSfM build and publish
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
+  release:
+    types: [published, edited]
+  workflow_dispatch:
+  create:
+
+jobs:
+  linux-build:
+    name: Wrapper Linux Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pyversion: ["cp36-cp36m", "cp37-cp37m", "cp38-cp38", "cp39-cp39", "cp310-cp310"] 
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Build the Linux wheels
+      run: |
+        sudo docker run --rm -e PYTHON_VERSION=${{ matrix.pyversion }} -v `pwd`:/home urbste/pytheia_base:1.0.1 /home/pypackage/build-wheel-linux.sh
+        # cleanup for custom runner
+        sudo chown -R $(whoami):$(whoami) .
+    - name: Publish distribution to Test PyPI
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        repository_url: https://test.pypi.org/legacy/
+        packages_dir: wheelhouse/
+
