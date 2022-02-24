@@ -33,6 +33,12 @@ typedef BinaryMatch<Matchable512, double> Match512;
 PYBIND11_MODULE(pyhbst, m) {
   m.doc() = "Python bindings for HBST";
 
+  py::class_<Score>(m, "Score")
+      .def(py::init<>())
+      .def_readonly("number_of_matches", &Score::number_of_matches)
+      .def_readonly("matching_ratio", &Score::matching_ratio)
+      .def_readonly("identifier_reference", &Score::identifier_reference);
+
   py::enum_<SplittingStrategy>(m, "SplittingStrategy")
       .value("DoNothing", SplittingStrategy::DoNothing)
       .value("SplitEven", SplittingStrategy::SplitEven)
@@ -66,6 +72,8 @@ PYBIND11_MODULE(pyhbst, m) {
       .def("match", &Tree64::matchWrapper<uint8_t>)
       .def("matchAndAdd", &Tree64::matchAndAddWrapper<bool>)
       .def("matchAndAdd", &Tree64::matchAndAddWrapper<uint8_t>)
+      .def("getScorePerImage", &Tree64::getScorePerImageWrapper<bool>)
+      .def("getScorePerImage", &Tree64::getScorePerImageWrapper<uint8_t>)      
       .def("trainedIdentifiers", &Tree64::trainedIdentifiers)
       .def("numberOfMatchablesUncompressed",
            &Tree64::numberOfMatchablesUncompressed)
@@ -103,6 +111,8 @@ PYBIND11_MODULE(pyhbst, m) {
       .def("match", &Tree128::matchWrapper<uint8_t>)
       .def("matchAndAdd", &Tree128::matchAndAddWrapper<bool>)
       .def("matchAndAdd", &Tree128::matchAndAddWrapper<uint8_t>)
+      .def("getScorePerImage", &Tree128::getScorePerImageWrapper<bool>)
+      .def("getScorePerImage", &Tree128::getScorePerImageWrapper<uint8_t>)   
       .def("trainedIdentifiers", &Tree128::trainedIdentifiers)
       .def("numberOfMatchablesUncompressed",
            &Tree128::numberOfMatchablesUncompressed)
@@ -140,6 +150,8 @@ PYBIND11_MODULE(pyhbst, m) {
       .def("match", &Tree256::matchWrapper<uint8_t>)
       .def("matchAndAdd", &Tree256::matchAndAddWrapper<bool>)
       .def("matchAndAdd", &Tree256::matchAndAddWrapper<uint8_t>)
+      .def("getScorePerImage", &Tree256::getScorePerImageWrapper<bool>)
+      .def("getScorePerImage", &Tree256::getScorePerImageWrapper<uint8_t>)  
       .def("trainedIdentifiers", &Tree256::trainedIdentifiers)
       .def("numberOfMatchablesUncompressed",
            &Tree256::numberOfMatchablesUncompressed)
@@ -177,6 +189,8 @@ PYBIND11_MODULE(pyhbst, m) {
       .def("match", &Tree512::matchWrapper<uint8_t>)
       .def("matchAndAdd", &Tree512::matchAndAddWrapper<bool>)
       .def("matchAndAdd", &Tree512::matchAndAddWrapper<uint8_t>)
+      .def("getScorePerImage", &Tree512::getScorePerImageWrapper<bool>)
+      .def("getScorePerImage", &Tree512::getScorePerImageWrapper<uint8_t>)  
       .def("trainedIdentifiers", &Tree512::trainedIdentifiers)
       .def("numberOfMatchablesUncompressed",
            &Tree512::numberOfMatchablesUncompressed)

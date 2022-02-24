@@ -131,7 +131,7 @@ class CMakeBuild(build_ext):
 # logic and declaration, and simpler if you include description/version in a file.
 setup(
     name="pyHBST",
-    version="0.1.0",
+    version="0.1.1",
     author="Steffen Urban",
     author_email="urbste@googlemail.com",
     description="pyHBST - Python bindings for fast incremental feature matching using Hamming Binary Search Trees",

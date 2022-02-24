@@ -17,6 +17,15 @@
     return false;                                                     \
   }
 
+
+//! @brief image score for a reference image (added)
+struct Score {
+  uint64_t number_of_matches = 0;
+  float matching_ratio = 0;
+  uint64_t identifier_reference = 0;
+};
+typedef std::vector<Score> ScoreVector;
+
 namespace srrg_hbst {
 
 //! @class the binary tree class, consisting of binary nodes holding binary
@@ -59,14 +68,6 @@ class BinaryTree {
     Node* node = nullptr;
     Matchable* matchable = nullptr;
   };
-
-  //! @brief image score for a reference image (added)
-  struct Score {
-    uint64_t number_of_matches = 0;
-    real_type matching_ratio = 0;
-    uint64_t identifier_reference = 0;
-  };
-  typedef std::vector<Score> ScoreVector;
 
   //! @brief object header containing main attributes
   struct Header {
@@ -282,6 +283,20 @@ class BinaryTree {
       }
     }
     return number_of_matches;
+  }
+
+  template <class T>
+  const ScoreVector getScorePerImageWrapper(
+    const std::vector<ObjectType>& keypoints,
+    const std::vector<std::vector<T>>& descriptors,
+    const uint64_t image_identifier,
+    const bool sort_output = true,
+    const uint32_t maximum_distance = 25
+  ) {
+    MatchableVector matchables_query;
+    getMatchablesFromPythonInput<T>(
+        keypoints, descriptors, image_identifier, matchables_query);
+    return getScorePerImage(matchables_query, sort_output, maximum_distance);
   }
 
   const ScoreVector getScorePerImage(

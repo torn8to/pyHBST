@@ -6,9 +6,9 @@ import numpy as np
 import time
 from utils import get_matchables_from_ocv
 
-detector = cv2.ORB_create(2000)
-max_hamming_dist = 35
-tree64 = pyhbst.BinarySearchTree256()
+detector = cv2.ORB_create(1000)
+max_hamming_dist = 50
+hbst = pyhbst.BinarySearchTree256()
 
 images = glob.glob(os.path.join(os.path.dirname(os.path.realpath(__file__)),'data/*.ppm'))
 
@@ -21,9 +21,9 @@ for idx, img_path in enumerate(images):
     plot_shift_x = I.shape[1]
     img_dict[idx] = I
     kpts, desc = detector.detectAndCompute(I,None)
-    print("Extracted {} keypoints from {}".format(desc.shape[1], idx))
+    print("Extracted {} keypoints from {}".format(desc.shape[0], idx))
     tree_matches = get_matchables_from_ocv(
-            tree64, kpts, desc, idx, max_hamming_dist, pyhbst.SplitEven)
+            hbst, kpts, desc, idx, max_hamming_dist, pyhbst.SplitEven)
 
     # show matches
     if tree_matches:
@@ -67,4 +67,4 @@ for idx, img_path in enumerate(images):
                 cv2.imwrite("debug_out/homog_matches"+str(idx)+"_"+str(m)+".jpg",conc_img)
 
 
-tree64.clear(True)
+hbst.clear(True)
